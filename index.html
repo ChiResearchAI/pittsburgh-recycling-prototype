@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pittsburgh Recycling Prototype</title>
+<meta name="description" content="Working prototype of the resident flow for City of Pittsburgh RFP 2026-RFP-168, built by ChiResearch Technologies, LLC.">
+<style>
+  :root{
+    --ink:#11161c; --ink-2:#39444f; --ink-3:#6b7785;
+    --line:#dde3ea; --line-2:#eef2f6;
+    --bg:#f6f8fa; --card:#ffffff;
+    --gold:#ffb81c; --gold-deep:#c88a00;
+    --blue:#1f4e79; --blue-soft:#eaf1f8;
+    --green:#15724a; --green-soft:#e7f4ee;
+    --red:#9a2a1f; --red-soft:#fdeeec;
+    --amber-soft:#fff6e3;
+    --r:14px;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef2f6; --ink-2:#b9c3ce; --ink-3:#8793a1;
+      --line:#2b333c; --line-2:#222930;
+      --bg:#0e1216; --card:#161c22;
+      --blue:#7fb1dd; --blue-soft:#15222e;
+      --green:#6ad3a4; --green-soft:#10241c;
+      --red:#f1948a; --red-soft:#2a1715;
+      --amber-soft:#2a2316;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef2f6; --ink-2:#b9c3ce; --ink-3:#8793a1;
+    --line:#2b333c; --line-2:#222930;
+    --bg:#0e1216; --card:#161c22;
+    --blue:#7fb1dd; --blue-soft:#15222e;
+    --green:#6ad3a4; --green-soft:#10241c;
+    --red:#f1948a; --red-soft:#2a1715;
+    --amber-soft:#2a2316;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px 72px}
+
+  /* ---------- banner ---------- */
+  .proto{background:var(--amber-soft);border-bottom:1px solid var(--line);
+         color:var(--ink-2);font-size:13.5px}
+  .proto .wrap{padding-top:10px;padding-bottom:10px}
+  .proto b{color:var(--ink)}
+
+  /* ---------- masthead ---------- */
+  header.mast{border-bottom:1px solid var(--line);background:var(--card)}
+  header.mast .wrap{padding-top:22px;padding-bottom:22px}
+  .brand{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .mark{width:30px;height:30px;border-radius:7px;background:var(--ink);
+        display:grid;place-items:center;flex:none}
+  .mark span{width:13px;height:13px;border-radius:3px;background:var(--gold);display:block}
+  .brand .name{font-weight:700;letter-spacing:-.01em}
+  .brand .sep{color:var(--line);}
+  .brand .sol{color:var(--ink-3);font-size:14px}
+  h1{font-size:27px;line-height:1.22;margin:16px 0 8px;letter-spacing:-.02em;max-width:22ch}
+  .sub{color:var(--ink-2);margin:0;max-width:62ch;font-size:15.5px}
+
+  /* ---------- layout ---------- */
+  .cols{display:grid;grid-template-columns:minmax(0,352px) minmax(0,1fr);
+        gap:34px;align-items:start;margin-top:30px}
+  @media (max-width:860px){ .cols{grid-template-columns:1fr;gap:26px} }
+
+  /* ---------- phone ---------- */
+  .phone-col{position:sticky;top:18px}
+  @media (max-width:860px){ .phone-col{position:static} }
+  .phone{background:var(--card);border:1px solid var(--line);border-radius:26px;
+         box-shadow:0 10px 34px rgba(16,24,32,.09);overflow:hidden}
+  .pbar{background:var(--ink);color:#fff;padding:13px 16px 14px}
+  .pbar .city{font-size:11px;letter-spacing:.09em;text-transform:uppercase;opacity:.72}
+  .pbar .app{font-weight:700;font-size:17px;margin-top:2px;letter-spacing:-.01em}
+  .pbar .app i{color:var(--gold);font-style:normal}
+  .tabs{display:flex;border-bottom:1px solid var(--line);background:var(--card)}
+  .tab{flex:1;padding:11px 6px;border:0;background:none;font:inherit;font-size:13.5px;
+       font-weight:600;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold)}
+  .tab:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+  .screen{padding:16px;min-height:430px}
+  label.fld{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);
+            margin:0 0 6px;letter-spacing:.01em}
+  input[type=text]{width:100%;padding:11px 12px;border:1px solid var(--line);
+    border-radius:10px;font:inherit;font-size:15px;background:var(--card);color:var(--ink)}
+  input[type=text]:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:transparent}
+  .hint{font-size:12.5px;color:var(--ink-3);margin:7px 0 0}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--ink-2);
+        border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+  .chip:hover{border-color:var(--ink-3);color:var(--ink)}
+  .chip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;
+        background:var(--card)}
+  .card.ok{background:var(--green-soft);border-color:transparent}
+  .card.no{background:var(--red-soft);border-color:transparent}
+  .card.info{background:var(--blue-soft);border-color:transparent}
+  .verdict{display:flex;align-items:baseline;gap:8px;font-weight:700;font-size:16px;
+           letter-spacing:-.01em}
+  .verdict .dot{width:9px;height:9px;border-radius:50%;flex:none;transform:translateY(-1px)}
+  .ok .dot{background:var(--green)} .no .dot{background:var(--red)} .info .dot{background:var(--blue)}
+  .because{margin:8px 0 0;font-size:14px;color:var(--ink-2)}
+  .where{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);padding-top:10px;
+         border-top:1px solid rgba(125,135,145,.22)}
+  .where b{color:var(--ink)}
+
+  .rows{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:11px 13px;
+       border-bottom:1px solid var(--line-2);font-size:14px}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--ink-3)} .row .v{font-weight:600;text-align:right}
+  .flag{margin-top:12px;background:var(--amber-soft);border-radius:10px;padding:11px 13px;
+        font-size:13.5px;color:var(--ink-2)}
+  .flag b{color:var(--ink)}
+
+  details.rule{margin-top:12px}
+  details.rule summary{cursor:pointer;font-size:13px;color:var(--blue);font-weight:600}
+  details.rule summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .ruleBox{margin-top:9px;border:1px dashed var(--line);border-radius:10px;padding:11px 12px;
+           font-size:12.5px;color:var(--ink-2);font-family:var(--mono);line-height:1.5}
+  .ruleBox .lbl{color:var(--ink-3)}
+
+  .note{padding:13px;border:1px dashed var(--line);border-radius:11px;
+        font-size:13px;color:var(--ink-3);margin-top:14px}
+
+  /* ---------- explainer ---------- */
+  .ex h2{font-size:14px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+         margin:0 0 14px;font-weight:700}
+  .item{border-top:1px solid var(--line);padding:17px 0}
+  .item:first-of-type{border-top:0;padding-top:0}
+  .item h3{margin:0 0 5px;font-size:16.5px;letter-spacing:-.01em}
+  .item p{margin:0;color:var(--ink-2);font-size:14.5px}
+  .item p + p{margin-top:8px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;
+       text-transform:uppercase;color:var(--blue);background:var(--blue-soft);
+       border-radius:5px;padding:2px 7px;margin-bottom:7px}
+  .stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:12px;margin:14px 0 2px}
+  .stat > div{border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:var(--card)}
+  .stat .n{font-size:21px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:12.5px;color:var(--ink-3);margin-top:1px;line-height:1.35}
+  a{color:var(--blue)}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:18px;
+         font-size:13px;color:var(--ink-3)}
+  footer b{color:var(--ink-2)}
+  .url{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="proto"><div class="wrap">
+  <b>Prototype.</b> Built by ChiResearch Technologies for City of Pittsburgh RFP #2026-RFP-168.
+  This is not a deployed system and is not in use by any municipality. Collection records and
+  material rules below are an illustrative sample, not the City's production data.
+</div></div>
+
+<header class="mast"><div class="wrap">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><span></span></div>
+    <div class="name">ChiResearch Technologies, LLC</div>
+    <div class="sep">·</div>
+    <div class="sol">RFP #2026-RFP-168 — Recycling Engagement and Analytics Application</div>
+  </div>
+  <h1>The resident flow, working.</h1>
+  <p class="sub">An address returns a collection day and the right set-out location. An item
+  returns Pittsburgh's answer, not a national one. Every answer traces to a written rule a
+  person can point at. Try it on the left.</p>
+</div></header>
+
+<div class="wrap">
+<div class="cols">
+
+  <!-- ============ PHONE ============ -->
+  <div class="phone-col">
+    <div class="phone">
+      <div class="pbar">
+        <div class="city">City of Pittsburgh · Environmental Services</div>
+        <div class="app">Pittsburgh <i>Recycles</i></div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Prototype screens">
+        <button class="tab" id="tab-c" role="tab" aria-selected="true" aria-controls="s-c">My collection</button>
+        <button class="tab" id="tab-i" role="tab" aria-selected="false" aria-controls="s-i">What goes where</button>
+      </div>
+
+      <!-- collection -->
+      <section class="screen" id="s-c" role="tabpanel" aria-labelledby="tab-c">
+        <label class="fld" for="addr">Your address</label>
+        <input type="text" id="addr" autocomplete="off" spellcheck="false"
+               placeholder="Start typing a street…" aria-describedby="addrHint">
+        <p class="hint" id="addrHint">Sample addresses in this prototype:</p>
+        <div class="chips" id="addrChips"></div>
+        <div id="cOut" aria-live="polite"></div>
+      </section>
+
+      <!-- items -->
+      <section class="screen" id="s-i" role="tabpanel" aria-labelledby="tab-i" hidden>
+        <label class="fld" for="item">Search an item</label>
+        <input type="text" id="item" autocomplete="off" spellcheck="false"
+               placeholder="pizza box, glass jar, batteries…" aria-describedby="itemHint">
+        <p class="hint" id="itemHint">Plain words, brand names and misspellings all resolve to the same record.</p>
+        <div class="chips" id="itemChips"></div>
+        <div id="iOut" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div class="note">
+      Runs entirely in the browser. No backend, no accounts, no resident data collected —
+      matching the City's answers at Questions 46 and 61.
+    </div>
+  </div>
+
+  <!-- ============ EXPLAINER ============ -->
+  <div class="ex">
+    <h2>What you are looking at</h2>
+
+    <div class="item">
+      <span class="tag">Why this, first</span>
+      <h3>Residents are already asking this question — by telephone</h3>
+      <p>In the City's own 311 record there are <b>11,390</b> "Recycling/Refuse/Blue Bin
+      Questions", and <b>70.2%</b> of them arrive by phone. The demand this application serves
+      is not a projection. It is already being absorbed by City staff, one call at a time.</p>
+      <div class="stat">
+        <div><div class="n">11,390</div><div class="l">blue-bin questions in 311</div></div>
+        <div><div class="n">70.2%</div><div class="l">of them by telephone</div></div>
+        <div><div class="n">0.730</div><div class="l">Gini, waste violations<br>vs 0.494 all requests</div></div>
+      </div>
+      <p style="margin-top:12px">Full analysis of 976,970 requests, with method and caveats:
+      <a href="https://chiresearchai.github.io/pittsburgh-311-analysis/">chiresearchai.github.io/pittsburgh-311-analysis</a></p>
+    </div>
+
+    <div class="item">
+      <span class="tag">Set-out location</span>
+      <h3>The rear and side exception set is first-class data</h3>
+      <p>Roughly a fifth of Pittsburgh addresses are set out at the rear or side rather than the
+      curb, and Environmental Services already maintains that in RouteSmart. Most applications
+      show every household the same curb graphic. This one renders the instruction that applies
+      to <em>your</em> address — try the Troy Hill and Beechview samples and watch the set-out
+      line change.</p>
+      <p>The City confirmed at Questions 19 and 54 that a periodic export, not a live
+      integration, is the intended mechanism. So the import is a repeatable validated load with
+      a reconciliation report on every run — never a silent success.</p>
+    </div>
+
+    <div class="item">
+      <span class="tag">Governance</span>
+      <h3>Every answer traces to a human-authored rule</h3>
+      <p>Open "Why this answer" on any result. You get the rule text, who owns it, and when it
+      was last reviewed. Per the City's answer at Question 20, the disposal answer is always
+      served from the Pittsburgh rule — never generated by a model, and no City data trains
+      anything.</p>
+      <p>That is also what makes the catalogue maintainable: Environmental Services edits the
+      rule, and every surface that quotes it changes at once.</p>
+    </div>
+
+    <div class="item">
+      <span class="tag">Honest scope</span>
+      <h3>What this prototype is not</h3>
+      <p>It is a weekend build of one flow, to show the shape of the thing and that we can
+      build it. The administrative console, the notification and geo-targeting engine, the
+      analytics views and the accessibility conformance work are described in the Response to
+      Scope and priced in the Cost Proposal — they are not in this page.</p>
+      <p>The material rules here are an illustrative sample. In delivery, ChiResearch supplies a
+      base catalogue and Environmental Services co-develops it from there, which is the
+      arrangement the City described at Question 55.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <b>ChiResearch Technologies, LLC</b> · Wilfred C. Ikejiofor, Founder and Principal ·
+  wilfred@chiresearchai.com · 410-929-2170<br>
+  311 figures from the Western Pennsylvania Regional Data Center, City of Pittsburgh 311 data,
+  resource <span class="url">5202679a-d243-402e-b82a-63189995a942</span>, retrieved 17 October 2026.
+  Prototype prepared for RFP #2026-RFP-168 and not a deployed system.
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- illustrative sample records ---- */
+  var ADDR = [
+    {q:"1200 Brighton Rd",      hood:"Manchester",  refuse:"Monday",    rec:"Monday, every other week",
+     next:"Mon 19 Oct", recNext:"Mon 26 Oct", setout:"Curb", zone:"NW-3", route:"R-114"},
+    {q:"1700 Lowrie St",        hood:"Troy Hill",   refuse:"Tuesday",   rec:"Tuesday, every other week",
+     next:"Tue 20 Oct", recNext:"Tue 27 Oct", setout:"Rear", zone:"NE-1", route:"R-203",
+     note:"This address is in the rear set-out exception set. Containers go in the rear alley, not at the front curb."},
+    {q:"500 Beechview Ave",     hood:"Beechview",   refuse:"Wednesday", rec:"Wednesday, every other week",
+     next:"Wed 21 Oct", recNext:"Wed 21 Oct", setout:"Side", zone:"SW-2", route:"R-318",
+     note:"Side set-out. Containers go on the side service lane."},
+    {q:"5800 Forbes Ave",       hood:"Squirrel Hill","refuse":"Thursday", rec:"Thursday, every other week",
+     next:"Thu 22 Oct", recNext:"Thu 29 Oct", setout:"Curb", zone:"E-4", route:"R-427"},
+    {q:"300 S Highland Ave",    hood:"Shadyside",   refuse:"Friday",    rec:"Friday, every other week",
+     next:"Fri 23 Oct", recNext:"Fri 23 Oct", setout:"Curb", zone:"E-2", route:"R-441"}
+  ];
+
+  /* ---- illustrative material rules ----
+     Each carries the rule text, owner and review date, because the governance model is the point. */
+  var ITEMS = [
+    {n:"Glass bottle or jar", k:["glass","bottle","jar","wine","beer bottle","mason"],
+     v:"Not in the blue bin", cls:"no",
+     why:"Pittsburgh's curbside programme does not accept glass. Glass is collected separately so it does not break and contaminate the rest of the load.",
+     where:"Take it to a City glass drop-off location. The app routes you to the nearest one with hours and directions.",
+     rule:"PGH-GLASS-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Plastic bag or film", k:["plastic bag","bag","film","wrap","grocery bag","shopping bag"],
+     v:"Not in the blue bin", cls:"no",
+     why:"Bags tangle in the sorting equipment at the processor and shut the line down. This is the single most common contaminant in curbside recycling.",
+     where:"Return clean, dry bags to a grocery-store drop-off. Never bag your recycling — place items loose in the bin.",
+     rule:"PGH-FILM-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Cardboard box", k:["cardboard","box","carton","amazon box","shipping box"],
+     v:"Blue bin — flatten it", cls:"ok",
+     why:"Corrugated cardboard is accepted. Flattening it keeps the bin usable and the truck efficient.",
+     where:"Blue bin, on your recycling week. Remove packing tape and plastic film first.",
+     rule:"PGH-OCC-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Aluminium or steel can", k:["can","aluminum","aluminium","tin","soda can","soup can","steel"],
+     v:"Blue bin", cls:"ok",
+     why:"Metal cans are accepted. Empty and rinse — residue contaminates paper in the same load.",
+     where:"Blue bin, on your recycling week. Labels can stay on.",
+     rule:"PGH-MET-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Plastic bottle or jug", k:["plastic bottle","jug","milk jug","water bottle","detergent"],
+     v:"Blue bin", cls:"ok",
+     why:"Bottles and jugs with a neck are accepted. Empty, rinse, and put the cap back on.",
+     where:"Blue bin, on your recycling week.",
+     rule:"PGH-PET-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Pizza box", k:["pizza","pizza box","greasy box"],
+     v:"Depends on the grease", cls:"info",
+     why:"Clean cardboard recycles. Grease and cheese do not — oil ruins the paper fibre for the whole bale.",
+     where:"Tear off and recycle the clean top. Put the greasy base in refuse.",
+     rule:"PGH-OCC-02", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Styrofoam / polystyrene", k:["styrofoam","foam","polystyrene","packing peanuts","cup"],
+     v:"Refuse", cls:"no",
+     why:"Not accepted in the curbside programme and not handled by the processor.",
+     where:"Place in your refuse container.",
+     rule:"PGH-EPS-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Batteries", k:["battery","batteries","aa","lithium","rechargeable"],
+     v:"Never in any bin", cls:"no",
+     why:"Lithium batteries ignite when crushed in a truck or at the sorting facility. This is a live fire risk, not a sorting preference.",
+     where:"Household hazardous waste collection, or a retail battery drop-off.",
+     rule:"PGH-HHW-02", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Electronics", k:["electronics","tv","laptop","computer","phone","monitor","e-waste"],
+     v:"Not curbside", cls:"no",
+     why:"Covered electronics are handled through a separate programme, not the blue bin or refuse.",
+     where:"City electronics recycling event or an accepting drop-off site.",
+     rule:"PGH-EWS-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Motor oil or paint", k:["motor oil","oil","paint","chemicals","solvent","pesticide"],
+     v:"Household hazardous waste", cls:"no",
+     why:"These cannot enter the refuse or recycling stream — they are a hazard to crews and to the processing facility.",
+     where:"City household hazardous waste collection. The app shows the next event date.",
+     rule:"PGH-HHW-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Yard debris", k:["yard","leaves","grass","branches","yard waste","brush"],
+     v:"Yard waste programme", cls:"info",
+     why:"Collected separately for composting rather than landfilled with refuse.",
+     where:"Use the City's yard-waste programme. Seasonal leaf collection dates appear in your calendar.",
+     rule:"PGH-YW-01", own:"Environmental Services", rev:"2026-10-01"},
+    {n:"Paper and cartons", k:["paper","newspaper","mail","magazine","milk carton","juice box"],
+     v:"Blue bin", cls:"ok",
+     why:"Paper, mail and beverage cartons are accepted. Keep them dry — wet paper is rejected at the processor.",
+     where:"Blue bin, on your recycling week.",
+     rule:"PGH-PAP-01", own:"Environmental Services", rev:"2026-10-01"}
+  ];
+
+  var $ = function(s){ return document.querySelector(s); };
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+    return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; }); }
+
+  /* ---------- tabs ---------- */
+  var tabs = [["tab-c","s-c"],["tab-i","s-i"]];
+  tabs.forEach(function(pair){
+    document.getElementById(pair[0]).addEventListener("click", function(){
+      tabs.forEach(function(p){
+        var sel = p[0] === pair[0];
+        document.getElementById(p[0]).setAttribute("aria-selected", sel ? "true":"false");
+        document.getElementById(p[1]).hidden = !sel;
+      });
+    });
+  });
+
+  /* ---------- collection ---------- */
+  function renderAddr(a){
+    if(!a){ $("#cOut").innerHTML = ""; return; }
+    var h = '<div class="card info"><div class="verdict"><span class="dot"></span>'
+          + esc(a.hood) + '</div>'
+          + '<p class="because">Next refuse collection <b>' + esc(a.next)
+          + '</b>. Next recycling <b>' + esc(a.recNext) + '</b>.</p></div>'
+          + '<div class="rows">'
+          + row("Refuse", a.refuse) + row("Recycling", a.rec)
+          + row("Set-out location", a.setout) + row("Zone", a.zone) + row("Route", a.route)
+          + '</div>';
+    if(a.note){ h += '<div class="flag"><b>Set out at the ' + esc(a.setout).toLowerCase()
+                   + '.</b> ' + esc(a.note) + '</div>'; }
+    h += '<details class="rule"><summary>Why this answer</summary><div class="ruleBox">'
+       + '<span class="lbl">source&nbsp;&nbsp;</span>RouteSmart address and exception export<br>'
+       + '<span class="lbl">record&nbsp;&nbsp;</span>' + esc(a.zone) + ' / ' + esc(a.route) + '<br>'
+       + '<span class="lbl">setout&nbsp;&nbsp;</span>' + esc(a.setout) + '<br>'
+       + '<span class="lbl">loaded&nbsp;&nbsp;</span>periodic City export, reconciled on import'
+       + '</div></details>';
+    $("#cOut").innerHTML = h;
+  }
+  function row(k,v){ return '<div class="row"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>'; }
+
+  function findAddr(q){
+    q = q.trim().toLowerCase();
+    if(q.length < 2) return null;
+    for(var i=0;i<ADDR.length;i++){
+      var a = ADDR[i];
+      if(a.q.toLowerCase().indexOf(q) > -1 || a.hood.toLowerCase().indexOf(q) > -1) return a;
+    }
+    return null;
+  }
+  $("#addr").addEventListener("input", function(){
+    var a = findAddr(this.value);
+    if(a) renderAddr(a);
+    else if(this.value.trim().length >= 2)
+      $("#cOut").innerHTML = '<div class="note">No sample record matches that. '
+        + 'This prototype carries five illustrative addresses — use a chip above. '
+        + 'In delivery, every serviced address in the City resolves.</div>';
+    else $("#cOut").innerHTML = "";
+  });
+  var ac = $("#addrChips");
+  ADDR.forEach(function(a){
+    var b = document.createElement("button");
+    b.className = "chip"; b.type = "button";
+    b.textContent = a.q + " · " + a.hood;
+    b.addEventListener("click", function(){ $("#addr").value = a.q; renderAddr(a); });
+    ac.appendChild(b);
+  });
+
+  /* ---------- items ---------- */
+  function renderItem(it){
+    if(!it){ $("#iOut").innerHTML = ""; return; }
+    var h = '<div class="card ' + it.cls + '"><div class="verdict"><span class="dot"></span>'
+          + esc(it.v) + '</div>'
+          + '<p class="because">' + esc(it.why) + '</p>'
+          + '<p class="where"><b>What to do.</b> ' + esc(it.where) + '</p></div>'
+          + '<details class="rule"><summary>Why this answer</summary><div class="ruleBox">'
+          + '<span class="lbl">rule&nbsp;&nbsp;&nbsp;&nbsp;</span>' + esc(it.rule) + '<br>'
+          + '<span class="lbl">item&nbsp;&nbsp;&nbsp;&nbsp;</span>' + esc(it.n) + '<br>'
+          + '<span class="lbl">owner&nbsp;&nbsp;&nbsp;</span>' + esc(it.own) + '<br>'
+          + '<span class="lbl">reviewed</span> ' + esc(it.rev) + '<br>'
+          + '<span class="lbl">authored</span> by a person. Not generated by a model.'
+          + '</div></details>';
+    $("#iOut").innerHTML = h;
+  }
+  function findItem(q){
+    q = q.trim().toLowerCase();
+    if(q.length < 2) return null;
+    var i, j;
+    for(i=0;i<ITEMS.length;i++){
+      for(j=0;j<ITEMS[i].k.length;j++){
+        if(ITEMS[i].k[j].indexOf(q) === 0 || q.indexOf(ITEMS[i].k[j]) === 0) return ITEMS[i];
+      }
+    }
+    for(i=0;i<ITEMS.length;i++){
+      if(ITEMS[i].n.toLowerCase().indexOf(q) > -1) return ITEMS[i];
+      for(j=0;j<ITEMS[i].k.length;j++){ if(ITEMS[i].k[j].indexOf(q) > -1) return ITEMS[i]; }
+    }
+    return null;
+  }
+  $("#item").addEventListener("input", function(){
+    var it = findItem(this.value);
+    if(it) renderItem(it);
+    else if(this.value.trim().length >= 2)
+      $("#iOut").innerHTML = '<div class="note">Nothing in this sample catalogue matches. '
+        + 'The prototype carries twelve illustrative records; the delivered catalogue covers '
+        + '400+ materials and 15,000+ search terms, co-developed with Environmental Services.</div>';
+    else $("#iOut").innerHTML = "";
+  });
+  var ic = $("#itemChips");
+  ["glass jar","plastic bag","pizza box","batteries","cardboard","motor oil"].forEach(function(t){
+    var b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.textContent = t;
+    b.addEventListener("click", function(){ $("#item").value = t; renderItem(findItem(t)); });
+    ic.appendChild(b);
+  });
+
+  /* open on a representative result so the page is never empty */
+  renderAddr(ADDR[1]);
+  $("#addr").value = ADDR[1].q;
+})();
+</script>
+</body>
+</html>
